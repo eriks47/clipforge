@@ -8,6 +8,14 @@ AI powered analysis of the video, that select the best moments, a clip oriented
 editor with live preview, and a render pipeline that produces a final mp4 with
 captions, hooks, framing and zooms.
 
+Features:
+- download source material from twitch/youtube from a URL,
+- extensive full video analysis to find the best moments (text, sound, motion, chat, etc.),
+- live video editor tailored for clipping (captions, framing, zooming, cuts, hooks, progress bars, etc.),
+- generate metadata like description and tags,
+- render to a local file (gpu accelerated),
+- local artifact library with all the clips you've rendered.
+
 By design it is a local system that uses your local codex or claude code for analysis,
 as well as OpenAI's Whisper for transcription. Can be a little slow with just the CPU
 for long videos, but the GPU requirements are low, for me it runs well on a
