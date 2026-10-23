@@ -1,5 +1,7 @@
 # 🎬 ClipForge
 
+<img width="1920" height="937" alt="image" src="https://github.com/user-attachments/assets/718708c1-7448-4e1f-a33a-3fb68d66a981" />
+
 A local vibe-coded complete clipping system for turning long-form video into
 short form clips for Youtube Shorts, TikTok, Instagram Reels, etc. It features
 AI powered analysis of the video, that select the best moments, a clip oriented
@@ -11,7 +13,7 @@ as well as OpenAI's Whisper for transcription. Can be a little slow with just th
 for long videos, but the GPU requirements are low, for me it runs well on a
 RTX 5060 8GB.
 
-## Requirements
+## 📦 Requirements
 
 | | |
 |---|---|
@@ -23,7 +25,7 @@ RTX 5060 8GB.
 | `claude` or `codex` CLI | optional, logged in. Used for LLM ranking, hooks and metadata |
 | Internet on first render | Remotion downloads Chrome Headless Shell once; Google Fonts load at render time |
 
-## Setup & run
+## 🚀 Setup & run
 
 ```fish
 ./setup.sh      # checks ffmpeg/yt-dlp/CUDA, pnpm install, Python venv, face models, creates .env
@@ -40,7 +42,7 @@ pnpm lint
 pnpm build && pnpm --filter @clipforge/server start   # serve the built UI from the server on :5174
 ```
 
-## Configuration (`.env`)
+## ⚙️ Configuration (`.env`)
 
 | Variable | Default | |
 |---|---|---|
@@ -71,7 +73,7 @@ With no LLM, everything still works: ranking uses the heuristic score and metada
 
 `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `OPENAI_API_KEY` and `CODEX_API_KEY` are stripped from the child environment so the login is always used. Every answer is validated with zod and retried once on invalid output. If the CLI fails, ranking falls back to heuristics and is logged in the job.
 
-## Workflow
+## 💮 Workflow
 
 1. **Projects:** drag a file in (chunked and resumable; after a reload use "Resume upload" with the same file) or paste a YouTube or Twitch VOD URL.
 2. **Pipeline** (automatic, every step cached in the project folder): probe → 720p proxy → audio (16 kHz WAV + 48 kHz FLAC) → transcription with word timestamps → loudness (ebur128), energy curve, spikes, silences → scene cuts → heatmap (YouTube imports) → Twitch chat replay (Twitch VOD imports) → audio signals → visual signals → candidate windows → ranking.
@@ -92,7 +94,7 @@ With no LLM, everything still works: ranking uses the heuristic score and metada
    Missing picks are chosen by the LLM in a pre-render step. You can also pick now to review: remove individual caption emojis, type your own hook emoji, or re-pick. With the LLM off, keyword matching is used instead.
 9. **Twitch chat:** for Twitch VOD imports the chat replay is downloaded alongside the video (public endpoint, no login; ~16 requests/s, about 10 min for a 12 h VOD with very busy chat). Chat activity per second combines the unique-chatter rate and *emote waves* (most of chat posting the same "W" / "KEKW", which still shows in slow-mode chats whose rate stays flat), relative to the stream's own baseline, boosted by laughter/hype and shifted back ~4 s for chat delay. Peaks seed candidate windows, "Chat activity" is a scoring feature (weight in Settings), and the LLM ranking prompt gets what chat said during each candidate. Expired, deleted or sub-only VODs have no chat.
 
-## Architecture
+## 🤔 Architecture
 
 ```mermaid
 flowchart LR
@@ -149,7 +151,7 @@ data/projects/<id>/
   renders/<name>_<clipId>.mp4 (.json, .txt)    renders/work/<clipId>/precut.mp4
 ```
 
-## Notes, limits and deviations from the spec
+## 🗒️ Notes, limits and deviations from the spec
 
 - **Uploads** are chunked `PUT` requests of raw bytes streamed to disk at an offset, rather than multipart. This makes them resumable and keeps memory flat for multi-GB files.
 - **Transcription** uses faster-whisper rather than WhisperX: word timestamps are good enough and it avoids a torch dependency. The WAV is fed in as a numpy array, which sidesteps PyAV API changes. When CUDA fails (cuDNN or kernel issues on new GPUs), the worker logs it and retries on CPU with `WHISPER_MODEL_CPU`.
@@ -162,7 +164,7 @@ data/projects/<id>/
 - **J/K/L:** browsers can't play video in reverse, so <kbd>J</kbd> jumps back 5 s instead of playing backwards.
 - **Remotion** licensing: free for individuals and small teams; see remotion.dev/license.
 
-## Troubleshooting
+## 🦍 Troubleshooting
 
 - **"Python venv not found"**: run `./setup.sh`. You can also point `PYTHON_PATH` at another interpreter that has `workers/py/requirements.txt` installed.
 - **Transcription is slow**: check the transcribe job log for `on cuda`. If it fell back to CPU, the log shows why. `nvidia-smi` must work, and the venv's `nvidia-cublas-cu12` / `nvidia-cudnn-cu12` libraries are put on `LD_LIBRARY_PATH` automatically.
