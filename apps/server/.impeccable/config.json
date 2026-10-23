@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "src/lib/documents.ts"
+        ],
+        "createdAt": "2026-10-19T19:58:21.236Z",
+        "reason": "Claude: regex that converts <img> tags in mammoth's HTML to text; no markup is rendered"
+      }
+    ]
+  }
+}

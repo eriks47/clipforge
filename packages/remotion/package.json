@@ -1,0 +1,28 @@
+{
+  "name": "@clipforge/remotion",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./entry": "./src/entry.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "studio": "remotion studio src/entry.ts"
+  },
+  "dependencies": {
+    "@clipforge/shared": "workspace:*",
+    "@remotion/google-fonts": "4.0.537",
+    "@remotion/media": "4.0.537",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "4.0.537"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.537",
+    "@types/react": "^19"
+  }
+}

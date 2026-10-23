@@ -1,0 +1,8 @@
+node_modules
+dist
+data
+.env
+workers/py/.venv
+workers/py/models
+*.log
+.remotion-bundle

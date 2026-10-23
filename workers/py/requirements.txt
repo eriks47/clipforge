@@ -1,0 +1,15 @@
+# PyTorch CUDA 12.8 wheels (Blackwell-capable); CPU-only machines still work, just slower
+--extra-index-url https://download.pytorch.org/whl/cu128
+faster-whisper>=1.1.0
+ctranslate2>=4.5.0
+# CUDA 12 runtime libs for CTranslate2 (cuBLAS + cuDNN 9); harmless on CPU-only machines
+nvidia-cublas-cu12
+nvidia-cudnn-cu12>=9,<10
+opencv-python-headless>=4.9
+mediapipe>=0.10.14
+numpy
+# Clip-finding signals (signals.py / visual.py): AudioSet tags, voice arousal, pitch, X-CLIP dance score.
+# Models download from Hugging Face on first use (~1.5 GB, cached in ~/.cache/huggingface).
+torch>=2.9
+torchaudio>=2.9
+transformers>=4.57
