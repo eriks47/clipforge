@@ -187,7 +187,7 @@ const MOMENTS_JSON_SCHEMA = {
           climax_piece: { type: "integer", description: "where the climax lands" },
           end_piece: { type: "integer", description: "climax or its short reaction" },
           rating: { type: "integer", description: "0-100" },
-          why: { type: "string", description: "<= 15 words: the hook and the climax" },
+          why: { type: "string", description: "<= 15 words: the hook and the payoff" },
         },
       },
     },
@@ -272,26 +272,29 @@ const EMOJI_JSON_SCHEMA = {
 
 // ---------- prompts ----------
 
+/** shared by the scouting (nominate) and ranking passes: what makes a moment viral */
+const VIRAL_CRITERIA = `Judge every moment on two factors, the hook first and the payoff second.
+1. Hook (highest priority): a short line or segment that would make a viewer stop scrolling instantly. Look for something attention-grabbing, out of pocket, shocking, polarizing, emotionally intense, highly curiosity-inducing, or unexpected compared to the rest of the transcript. Strong hooks often create a curiosity gap, sound controversial, challenge a common belief or the status quo, reference something surprising, taboo, risky, dramatic, impressive or unusual, or touch on current viral topics, trends, cultural moments or online narratives when present. Never open on filler, greetings or slow setup.
+2. Payoff (secondary priority): the part that answers or fulfills the curiosity the hook created: it explains the hook, resolves its tension or question, gives the viewer the "why", "how" or "what happened", and makes the clip feel satisfying and complete (punchline, reveal, comeback, the answer, the reaction). Keep the hook and its payoff connected in one clip whenever possible, with only the lines between them that the payoff needs; the clip ends right after the payoff, plus at most a beat of reaction.
+Do not reject a strong hook just because its payoff is weak or incomplete: a very strong hook is worth clipping on its own.
+Prefer moments that work as standalone short clips. When several moments are similar, keep the strongest, cleanest, most scroll-stopping one. Skip moments that are only informative unless they are also highly attention-grabbing, and skip long boring setup unless it is needed for context.`
+
 const RANK_SYSTEM = `You are an expert short-form video editor who picks moments from long videos (podcasts, streams, interviews) that will perform well as YouTube Shorts / TikTok / Reels.
-Every clip must follow the Hook - Progress - Climax structure:
-- Hook (first 2-3 seconds): the opening line grabs attention on its own and raises a question, tension or expectation (a bold claim, a surprising statement, a conflict, "you won't believe...", an odd situation already in motion). Never open on filler, greetings or slow setup.
-- Progress (the middle): every line keeps the viewer watching and builds toward the payoff: escalation, the story moving forward, back-and-forth, rising stakes. Keep it tight: cut anything that doesn't build, but don't drop context the climax needs.
-- Climax (the end): the big moment itself (punchline, reveal, comeback, freak-out, the laugh, the answer) lands near the end and pays off the hook's promise. The clip ends right after it, plus at most a beat of reaction; nothing after the climax.
-A great moment with its payoff in the first seconds is not a good clip as-is: start earlier so it builds up to it, or skip it.
-Judge each candidate on how well it fits that structure, whether it is understandable without context, and how intense and shareable the climax is.
+${VIRAL_CRITERIA}
+Judge each candidate mainly on its hook, then on its payoff, whether it is understandable without context, and how intense and shareable it is.
 An "audio/video events" line lists what audio and video models detected that a transcript can't show (people laughing, cheering or shouting, an excited voice, dancing or singing), with times: laughter right after a line is strong evidence it landed; a performance can be a great clip with little speech.
 For livestream VODs a "live chat" line shows how the stream's chat reacted to the moment (already lined up for chat delay): a chat explosion with laughter or hype (KEKW, LUL, OMEGALUL, LMAO, Pog, W) is strong evidence of a clip-worthy moment; chat spam alone without anything happening in the transcript is not.
 First score each aspect 0-10 on an absolute scale (5 = typical podcast/stream moment, 8 = clearly above what most Shorts manage, 10 = exceptional), then give the overall rating:
-- hook: do the first 2-3 seconds grab attention on their own and make the viewer want to see what happens?
-- progress: does the middle keep building toward the climax without dead weight?
-- climax: is there a strong payoff (punchline, reveal, reaction) near the end that satisfies the hook? Low if the big moment comes early or the clip trails on after it.
+- hook: would the first 2-3 seconds stop a viewer scrolling on their own (shocking, polarizing, curiosity gap, unexpected)?
+- progress: does the middle stay tight and lead to the payoff without dead weight or boring setup?
+- climax: the payoff: does the clip answer or fulfill the hook's curiosity (why, how, what happened) and feel complete? Low if the clip trails on after it.
 - self_contained: understandable with no context from the rest of the video?
 - emotion: intensity (funny, angry, shocked, moving)?
-The overall rating is mostly hook x climax: a weak hook or a missing/early climax caps the rating at ~60 however good the rest is.
+The overall rating is driven mainly by the hook, then the payoff: a weak hook caps the rating at ~55 however good the rest is, while a very strong hook with a weak or incomplete payoff can still rate 70+.
 Be critical and use the full 0-100 range for rating: most moments are mediocre (30-60); reserve 85+ for clips you'd confidently post. Rate on the same absolute scale in every request: you see only some of the candidates at a time.
 A Short must never begin or end in the middle of a sentence. Each candidate's transcript is listed as numbered pieces (sentences, long sentences split into clauses) with timestamps and sentence markers. To move a clip's boundaries, answer with piece ids:
-- start_piece: the hook, the piece the clip begins with. Prefer a piece that starts a sentence (S). Skip preamble: if the attention-grabbing line comes a few pieces in, start there (as long as the climax still makes sense). A clause start is acceptable only when that sentence is long and the clause makes sense on its own as an opening.
-- end_piece: the climax, or the short reaction right after it: the last piece of the clip. Prefer a piece that ends a sentence (E). Never end on a piece that leaves the thought unfinished, and never keep talking after the payoff.
+- start_piece: the hook, the piece the clip begins with. Prefer a piece that starts a sentence (S). Skip preamble: if the attention-grabbing line comes a few pieces in, start there (as long as the payoff still makes sense). A clause start is acceptable only when that sentence is long and the clause makes sense on its own as an opening.
+- end_piece: the payoff, or the short reaction right after it: the last piece of the clip. Prefer a piece that ends a sentence (E). Never end on a piece that leaves the thought unfinished, and never keep talking after the payoff.
 - You may use the ~ context pieces just outside the current range to start earlier or finish a thought.
 - Use null for both to keep the current range. Set both whenever the current range starts or ends mid-sentence or a tighter cut that starts on the hook would be better.
 suggested_title: under 70 characters, no clickbait lies.
@@ -304,16 +307,12 @@ function peopleBlock(people: string | undefined): string {
 
 const NOMINATE_SYSTEM = `You scout long videos (podcasts, streams, interviews, debates) for moments to cut into YouTube Shorts / TikTok / Reels.
 You get one section of the transcript as numbered sentence pieces. Read all of it and pick the best self-contained moments.
-Every clip must follow the Hook - Progress - Climax structure:
-- Hook (first 2-3 seconds): the opening line grabs attention on its own and raises a question, tension or expectation (a bold claim, a surprising statement, a conflict, "you won't believe...", an odd situation already in motion). Never open on filler, greetings or slow setup.
-- Progress (the middle): every line keeps the viewer watching and builds toward the payoff: escalation, the story moving forward, back-and-forth, rising stakes. Keep it tight: cut anything that doesn't build, but don't drop context the climax needs.
-- Climax (the end): the big moment itself (punchline, reveal, comeback, freak-out, the laugh, the answer) lands near the end and pays off the hook's promise. The clip ends right after it, plus at most a beat of reaction; nothing after the climax.
-A great moment with its payoff in the first seconds is not a good clip as-is: start earlier so it builds up to it, or skip it.
-For each moment: start_piece = the hook (prefer a piece that starts a sentence), climax_piece = the piece where the climax lands, end_piece = the last piece: the climax itself or a short reaction right after it (at most ~5 s after the climax).
+${VIRAL_CRITERIA}
+For each moment: start_piece = the hook (prefer a piece that starts a sentence), climax_piece = the piece where the payoff lands (the hook piece itself if there is no real payoff), end_piece = the last piece: the payoff itself or a short reaction right after it (at most ~5 s after the payoff).
 Bracketed tags like [laughter] or [cheering/shouting] come from audio/video models, not the transcript: laughter or cheering right after a line means it landed, and [dancing/singing] marks a performance worth clipping even with few words.
 Quality over quantity: return fewer moments (or none) when the section is dull. Never pick a moment that only makes sense with context from earlier in the video.
 rating 0-100 on an absolute scale: 50 = an average moment for this kind of video, 85+ = you would confidently post it.
-rating reflects how strong the hook and the climax are. Use the piece ids exactly as listed; start_piece <= climax_piece <= end_piece.
+rating reflects mainly how strong the hook is, then the payoff. Use the piece ids exactly as listed; start_piece <= climax_piece <= end_piece.
 Respond with JSON only.`
 
 export function buildNominatePrompt(input: NominateInput): string {
